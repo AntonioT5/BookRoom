@@ -14,12 +14,16 @@ import { AiService } from './ai/ai.service';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get<string>('DATABASE_URL'),
+      useFactory: (config: ConfigService) => {
+      const url = config.get<string>('DATABASE_URL');
+      return {
+        type: 'postgres' as const,
+        url,
+        ssl: url?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
         entities: [Room, Slot],
         synchronize: true,
-      }),
+      };
+    },
     }),
     TypeOrmModule.forFeature([Room, Slot]),
     SlotsModule,
